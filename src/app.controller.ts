@@ -1,6 +1,7 @@
-import { Controller, Request, Post, UseGuards } from '@nestjs/common';
+import { Controller, Request, Post, UseGuards, Get } from '@nestjs/common';
 import { LocalAuthGuard } from './auth/local-auth.guard';
 import { AuthService } from './auth/auth.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Controller()
 export class AppController {
@@ -18,5 +19,15 @@ export class AppController {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
     return this.authService.login(req.user);
+  }
+
+  // Once again, we're applying the AuthGuard that the @nestjs/passport module has automatically
+  // provisioned for us when we configured the passport-jwt module. This Guard is referenced by its default name, jwt.
+  // When our GET /profile route is hit, the Guard will automatically invoke our passport-jwt custom configured strategy,
+  // validate the JWT, and assign the user property to the Request object.
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Request() req) {
+    return req.user;
   }
 }
