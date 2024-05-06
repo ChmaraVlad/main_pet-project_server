@@ -1,8 +1,11 @@
-import { Controller, Bind, Request, Post, UseGuards } from '@nestjs/common';
+import { Controller, Request, Post, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from './auth/local-auth.guard';
+import { AuthService } from './auth/auth.service';
 
 @Controller()
 export class AppController {
+  constructor(private authService: AuthService) {}
+
   // With @UseGuards(AuthGuard('local')) we are using an AuthGuard that @nestjs/passportautomatically provisioned for us
   // when we extended the passport-local strategy. Let's break that down. Our Passport local strategy has a default name of 'local'.
   // We reference that name in the @UseGuards() decorator to associate it with code supplied by the passport-local package.
@@ -11,10 +14,9 @@ export class AppController {
   // we'll shortly add a second, so this is needed for disambiguation.
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
-  @Bind(Request())
-  async login(req) {
+  async login(@Request() req) {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
-    return req.user;
+    return this.authService.login(req.user);
   }
 }
