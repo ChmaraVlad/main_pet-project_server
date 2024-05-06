@@ -1,5 +1,5 @@
 import { Controller, Bind, Request, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { LocalAuthGuard } from './auth/local-auth.guard';
 
 @Controller()
 export class AppController {
@@ -9,7 +9,7 @@ export class AppController {
   // This is used to disambiguate which strategy to invoke in case we have multiple Passport strategies in our app
   // (each of which may provision a strategy-specific AuthGuard). While we only have one such strategy so far,
   // we'll shortly add a second, so this is needed for disambiguation.
-  @UseGuards(AuthGuard('local'))
+  @UseGuards(LocalAuthGuard)
   @Post('auth/login')
   @Bind(Request())
   async login(req) {
