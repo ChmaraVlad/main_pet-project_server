@@ -14,7 +14,7 @@ export class AppController {
   // (each of which may provision a strategy-specific AuthGuard). While we only have one such strategy so far,
   // we'll shortly add a second, so this is needed for disambiguation.
   @UseGuards(LocalAuthGuard)
-  @Post('auth/login')
+  @Post('v1/auth/login')
   async login(@Request() req) {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
@@ -26,7 +26,7 @@ export class AppController {
   // When our GET /profile route is hit, the Guard will automatically invoke our passport-jwt custom configured strategy,
   // validate the JWT, and assign the user property to the Request object.
   @UseGuards(JwtAuthGuard)
-  @Get('profile')
+  @Get('v1/profile')
   getProfile(@Request() req) {
     return req.user;
   }
