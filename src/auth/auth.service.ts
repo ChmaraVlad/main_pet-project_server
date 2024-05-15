@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from 'src/users/users.service';
+import { UserDto } from './dto/userDto';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +12,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(email);
+    const user: UserDto = await this.usersService.findOne(email);
     if (user && user.password === pass) {
       const { password, ...result } = user;
       return result;
@@ -19,11 +20,33 @@ export class AuthService {
     return null;
   }
 
-  // To keep our services cleanly modularized, we'll handle generating the JWT in the authService
-  async login(user: any) {
-    const payload = { email: user.email, sub: user.userId };
+  async getUserData(user: UserDto) {
     return {
-      accessToken: this.jwtService.sign(payload),
+      user: {
+        email: user.email,
+        username: user.username,
+      },
+    };
+  }
+
+  async generateJwtAccessToken(user: UserDto) {
+    const payload = { email: user.email, sub: user.userId };
+    const token = await this.jwtService.sign(payload);
+    return token;
+  }
+
+  async generateRefreshToken(user: UserDto) {
+    const payload = { email: user.email, sub: user.userId };
+    const token = await this.jwtService.sign(payload);
+    return token;
+  }
+
+  // To keep our services cleanly modularized, we'll handle generating the JWT in the authService
+  async refreshToken(user: any) {
+    const payload = { email: user.email, sub: user.userId };
+    const accessToken = await this.jwtService.sign(payload);
+    return {
+      accessToken,
       user: {
         email: user.email,
         username: user.username,
