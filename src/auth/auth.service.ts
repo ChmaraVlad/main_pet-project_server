@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from 'src/users/users.service';
 import { UserDto } from './dto/userDto';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -31,14 +32,25 @@ export class AuthService {
 
   async generateJwtAccessToken(user: UserDto) {
     const payload = { email: user.email, sub: user.userId };
-    const token = await this.jwtService.sign(payload);
+    const token = await this.jwtService.sign(payload, {
+      secret: jwtConstants.secret,
+    });
     return token;
   }
 
   async generateRefreshToken(user: UserDto) {
     const payload = { email: user.email, sub: user.userId };
-    const token = await this.jwtService.sign(payload);
+    const token = await this.jwtService.sign(payload, {
+      secret: jwtConstants.refreshSecret,
+    });
     return token;
+  }
+
+  async getInfoFromIncomingRefreshToken(token) {
+    const decodedInfo = await this.jwtService.verify(token, {
+      secret: jwtConstants.refreshSecret,
+    });
+    return decodedInfo;
   }
 
   // To keep our services cleanly modularized, we'll handle generating the JWT in the authService

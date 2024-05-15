@@ -5,17 +5,20 @@ import { jwtConstants } from '../constants';
 import { Request } from 'express';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class AccessJwtStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access',
+) {
   constructor() {
     // This strategy requires some initialization, so we do that by passing in an options object in the super() call
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          const data = request?.cookies['access_token'];
-          if (!data) {
+          const accessToken = request?.cookies['access_token'];
+          if (!accessToken) {
             return null;
           }
-          return data;
+          return accessToken;
         },
       ]),
       ignoreExpiration: false,
