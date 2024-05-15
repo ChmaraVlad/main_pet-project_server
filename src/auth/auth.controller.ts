@@ -18,7 +18,7 @@ export class AuthController {
   // we'll shortly add a second, so this is needed for disambiguation.
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async login(@Request() req, @Res() res: Response) {
+  async login(@Request() req, @Res({ passthrough: true }) res: Response) {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
     const accessToken = await this.authService.generateJwtAccessToken(req.user);
@@ -27,16 +27,14 @@ export class AuthController {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: true,
-      maxAge: 2 * 60 * 1000,
+      maxAge: 5 * 60 * 1000, //5min
     });
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, //24hr
     });
-    console.log('--------', res.getHeaders());
     const user = await this.authService.getUserData(req.user);
-    console.log('🚀 ~ AuthController ~ login ~ user:', user);
     res.send(user);
   }
 

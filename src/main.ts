@@ -9,6 +9,12 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
+  app.enableCors({
+    credentials: true,
+    origin: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Advanced lesson Backend')
     .setDescription('Documentation REST API')
@@ -19,8 +25,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  app.use(cookieParser());
-  app.enableCors();
   //we can add global pipes for all routes, here can be lots of pipes, one by one
   // app.useGlobalPipes(new ValidationPipe());
 
