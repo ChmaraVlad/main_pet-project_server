@@ -1,15 +1,15 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { jwtConstants } from '../constants';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     // This strategy requires some initialization, so we do that by passing in an options object in the super() call
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -22,7 +22,7 @@ export class RefreshJwtStrategy extends PassportStrategy(
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: jwtConstants.refreshSecret,
+      secretOrKey: configService.get<string>('secretRefreshToken'),
     });
   }
 

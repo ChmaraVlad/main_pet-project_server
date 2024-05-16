@@ -3,13 +3,14 @@ import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from 'src/users/users.service';
 import { UserDto } from './dto/userDto';
-import { jwtConstants } from './constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -33,7 +34,7 @@ export class AuthService {
   async generateJwtAccessToken(user: UserDto) {
     const payload = { email: user.email, sub: user.userId };
     const token = await this.jwtService.sign(payload, {
-      secret: jwtConstants.secret,
+      secret: this.configService.get<string>('secrestAccessToken'),
     });
     return token;
   }
@@ -41,14 +42,14 @@ export class AuthService {
   async generateRefreshToken(user: UserDto) {
     const payload = { email: user.email, sub: user.userId };
     const token = await this.jwtService.sign(payload, {
-      secret: jwtConstants.refreshSecret,
+      secret: this.configService.get<string>('secretRefreshToken'),
     });
     return token;
   }
 
   async getInfoFromIncomingRefreshToken(token) {
     const decodedInfo = await this.jwtService.verify(token, {
-      secret: jwtConstants.refreshSecret,
+      secret: this.configService.get<string>('secretRefreshToken'),
     });
     return decodedInfo;
   }
