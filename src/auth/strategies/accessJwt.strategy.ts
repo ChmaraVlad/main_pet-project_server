@@ -1,16 +1,15 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { jwtConstants } from '../constants';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AccessJwtStrategy extends PassportStrategy(
   Strategy,
   'jwt-access',
 ) {
-  constructor() {
-    // This strategy requires some initialization, so we do that by passing in an options object in the super() call
+  constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
@@ -22,7 +21,7 @@ export class AccessJwtStrategy extends PassportStrategy(
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: jwtConstants.secret,
+      secretOrKey: configService.get<string>('secretAccessToken'),
     });
   }
 
