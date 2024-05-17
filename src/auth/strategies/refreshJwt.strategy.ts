@@ -24,10 +24,15 @@ export class RefreshJwtStrategy extends PassportStrategy(
   // passing the decoded JSON as its single parameter. Based on the way JWT signing works,
   // we're guaranteed that we're receiving a valid token that we have previously signed and issued to a valid user.
   async validate(payload) {
-    const user = { id: payload.sub, email: payload.email };
-    if (!user) {
-      throw new UnauthorizedException();
+    try {
+      if (!payload.user) {
+        throw new UnauthorizedException();
+      }
+      const user = { ...payload.user };
+
+      return user;
+    } catch (error) {
+      console.log('🚀 ~ validate ~ error:', error);
     }
-    return user;
   }
 }

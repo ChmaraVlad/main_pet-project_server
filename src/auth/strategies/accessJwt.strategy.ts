@@ -23,16 +23,16 @@ export class AccessJwtStrategy extends PassportStrategy(
   // passing the decoded JSON as its single parameter. Based on the way JWT signing works,
   // we're guaranteed that we're receiving a valid token that we have previously signed and issued to a valid user.
   async validate(payload) {
-    console.log('🚀 ~ validate ~ payload:', payload);
-    const user = {
-      id: payload.sub,
-      username: payload.username,
-      email: payload.email,
-    };
-    console.log('🚀 ~ validate ~ user:', user);
-    if (!user) {
-      throw new UnauthorizedException();
+    try {
+      if (!payload.user) {
+        throw new UnauthorizedException();
+      }
+
+      return {
+        ...payload.user,
+      };
+    } catch (error) {
+      console.log('🚀 ~ validate ~ error:', error);
     }
-    return user;
   }
 }
