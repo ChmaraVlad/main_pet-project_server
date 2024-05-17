@@ -21,10 +21,14 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     // Typically, the only significant difference in the validate() method for each strategy is how you determine if a user exists and is valid.
     // For example, in a JWT strategy, depending on requirements, we may evaluate whether the userId carried in the decoded token matches
     // a record in our user database, or matches a list of revoked tokens.
-    const user = await this.authService.validateUser(email, password);
-    if (!user) {
-      throw new UnauthorizedException();
+    try {
+      const user = await this.authService.validateUser(email, password);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      return user;
+    } catch (error) {
+      console.log('🚀 ~ LocalStrategy ~ validate ~ error:', error);
     }
-    return user;
   }
 }

@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './local-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
-import { RefreshJwtAuthGuard } from './refresh-token-jwt-auth.guard';
+import { RefreshJwtAuthGuard } from './guards/refresh-token-jwt-auth.guard';
 
 @ApiTags('Авторизация')
 @Controller('/v1/auth')
@@ -43,11 +43,12 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000, //24hr
     });
     const user = await this.authService.getUserData(req.user);
-    res.send(user);
+    const { password, ...dataWithoutPassword } = user;
+    res.send(dataWithoutPassword);
   }
 
   @UseGuards(RefreshJwtAuthGuard)
-  @Get('refresh')
+  @Get('/refresh')
   async regenerateTokens(
     @Request() req,
     @Res({ passthrough: true }) res: Response,
@@ -80,7 +81,7 @@ export class AuthController {
       });
       // Passport automatically creates a user object, based on the value we return from the validate() method,
       // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
-      return { user: req.user };
+      res.sendStatus(201);
     }
   }
 }
