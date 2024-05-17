@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -12,16 +12,10 @@ export class AccessJwtStrategy extends PassportStrategy(
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          const accessToken = request?.cookies['access_token'];
-          if (!accessToken) {
-            return null;
-          }
-          return accessToken;
-        },
+        (request: Request) => request?.cookies?.['access_token'],
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('secretAccessToken'),
+      secretOrKey: configService.get<string>('SECRET_TOKEN'),
     });
   }
 
@@ -29,7 +23,13 @@ export class AccessJwtStrategy extends PassportStrategy(
   // passing the decoded JSON as its single parameter. Based on the way JWT signing works,
   // we're guaranteed that we're receiving a valid token that we have previously signed and issued to a valid user.
   async validate(payload) {
-    const user = { id: payload.sub, username: payload.username };
+    console.log('🚀 ~ validate ~ payload:', payload);
+    const user = {
+      id: payload.sub,
+      username: payload.username,
+      email: payload.email,
+    };
+    console.log('🚀 ~ validate ~ user:', user);
     if (!user) {
       throw new UnauthorizedException();
     }

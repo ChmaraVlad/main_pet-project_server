@@ -24,17 +24,14 @@ export class AuthService {
 
   async getUserData(user: UserDto) {
     return {
-      user: {
-        email: user.email,
-        username: user.username,
-      },
+      user,
     };
   }
 
   async generateJwtAccessToken(user: UserDto) {
     const payload = { email: user.email, sub: user.userId };
     const token = await this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('secrestAccessToken'),
+      secret: this.configService.get<string>('SECRET_TOKEN'),
     });
     return token;
   }
@@ -42,28 +39,15 @@ export class AuthService {
   async generateRefreshToken(user: UserDto) {
     const payload = { email: user.email, sub: user.userId };
     const token = await this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('secretRefreshToken'),
+      secret: this.configService.get<string>('SECRET_TOKEN'),
     });
     return token;
   }
 
   async getInfoFromIncomingRefreshToken(token) {
     const decodedInfo = await this.jwtService.verify(token, {
-      secret: this.configService.get<string>('secretRefreshToken'),
+      secret: this.configService.get<string>('SECRET_TOKEN'),
     });
     return decodedInfo;
-  }
-
-  // To keep our services cleanly modularized, we'll handle generating the JWT in the authService
-  async refreshToken(user: any) {
-    const payload = { email: user.email, sub: user.userId };
-    const accessToken = await this.jwtService.sign(payload);
-    return {
-      accessToken,
-      user: {
-        email: user.email,
-        username: user.username,
-      },
-    };
   }
 }

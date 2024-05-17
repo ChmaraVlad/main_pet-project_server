@@ -13,16 +13,10 @@ export class RefreshJwtStrategy extends PassportStrategy(
     // This strategy requires some initialization, so we do that by passing in an options object in the super() call
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          const refreshToken = request?.cookies['refresh_token'];
-          if (!refreshToken) {
-            return null;
-          }
-          return refreshToken;
-        },
+        (request: Request) => request?.cookies?.['refresh_token'],
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('secretRefreshToken'),
+      secretOrKey: configService.get<string>('SECRET_TOKEN'),
     });
   }
 
