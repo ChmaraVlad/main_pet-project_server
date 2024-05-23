@@ -5,9 +5,9 @@ import { AuthModule } from 'src/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  providers: [UsersService, ConfigModule],
+  providers: [UsersService],
   exports: [UsersService],
   controllers: [UserController],
-  imports: [forwardRef(() => AuthModule), ConfigModule],
+  imports: [forwardRef(() => AuthModule)],
 })
 export class UsersModule {}

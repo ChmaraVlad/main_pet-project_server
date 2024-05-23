@@ -4,10 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 
+import { HttpExceptionFilter } from './http-exception.filter';
+
 async function bootstrap() {
   const PORT = process.env.PORT || 5000;
 
   const app = await NestFactory.create(AppModule, { rawBody: true });
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.use(cookieParser());
   app.enableCors({

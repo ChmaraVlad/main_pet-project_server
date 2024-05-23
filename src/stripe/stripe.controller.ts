@@ -1,7 +1,14 @@
 import { Body, Controller, Get, Post, Res } from '@nestjs/common';
-import { StripeService } from './stripe.service';
-import { PaymentRequestBody } from './types/PaymentRequestBody';
 import { Response } from 'express';
+
+// services
+import { StripeService } from './stripe.service';
+
+// types
+import { PaymentRequestBody } from './types/PaymentRequestBody';
+
+// exceptions
+import { CustomInternalServerErrorException } from 'src/exceptions/CustomInternalServerErrorException';
 
 @Controller('stripe')
 export class StripeController {
@@ -36,7 +43,7 @@ export class StripeController {
       }
     } catch (error) {
       console.log('🚀 ~ StripeController ~ error:', error);
-      return error;
+      throw new CustomInternalServerErrorException();
     }
   }
 
@@ -52,7 +59,7 @@ export class StripeController {
       response.send({ url: sessionUrl });
     } catch (error) {
       console.log('🚀 ~ StripeController ~ error:', error);
-      response.send({ error });
+      throw new CustomInternalServerErrorException();
     }
   }
 }

@@ -1,8 +1,12 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+
+// exceptions
+import { CustomInternalServerErrorException } from 'src/exceptions/CustomInternalServerErrorException';
+import { CustomUnauthorizedException } from 'src/exceptions/CustomUnauthorizedException';
 
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(
@@ -24,15 +28,19 @@ export class RefreshJwtStrategy extends PassportStrategy(
   // passing the decoded JSON as its single parameter. Based on the way JWT signing works,
   // we're guaranteed that we're receiving a valid token that we have previously signed and issued to a valid user.
   async validate(payload) {
+    console.log('🚀 ~ validate ~ payload:', payload);
     try {
       if (!payload.user) {
-        throw new UnauthorizedException();
+        throw new CustomUnauthorizedException(
+          'Strategy Refresh Jwt Use is not found',
+        );
       }
       const user = { ...payload.user };
 
-      return user;
+      return { user };
     } catch (error) {
       console.log('🚀 ~ validate ~ error:', error);
+      throw new CustomInternalServerErrorException();
     }
   }
 }
