@@ -7,12 +7,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const PORT = process.env.PORT || 5000;
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.use(cookieParser());
   app.enableCors({
     credentials: true,
-    origin: true,
+    origin: ['http://localhost:3000', 'https://checkout.stripe.com'],
   });
 
   const config = new DocumentBuilder()
