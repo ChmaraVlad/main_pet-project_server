@@ -9,7 +9,7 @@ export class StripeModule {
     return {
       module: StripeModule,
       controllers: [StripeController],
-      imports: [ConfigModule.forRoot()],
+      imports: [],
       providers: [
         StripeService,
         {
