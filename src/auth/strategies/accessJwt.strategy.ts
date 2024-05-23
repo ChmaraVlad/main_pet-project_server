@@ -1,8 +1,12 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+
+// exceptions
+import { CustomNotFoundException } from 'src/exceptions/CustomNotFoundException';
+import { CustomInternalServerErrorException } from 'src/exceptions/CustomInternalServerErrorException';
 
 @Injectable()
 export class AccessJwtStrategy extends PassportStrategy(
@@ -25,14 +29,15 @@ export class AccessJwtStrategy extends PassportStrategy(
   async validate(payload) {
     try {
       if (!payload.user) {
-        throw new UnauthorizedException();
+        throw new CustomNotFoundException();
       }
 
       return {
-        ...payload.user,
+        user: payload.user,
       };
     } catch (error) {
       console.log('🚀 ~ validate ~ error:', error);
+      throw new CustomInternalServerErrorException();
     }
   }
 }
