@@ -37,7 +37,7 @@ export class RefreshJwtStrategy extends PassportStrategy(
       }
       const user = { ...payload.user };
 
-      return { user };
+      return user;
     } catch (error) {
       console.log('🚀 ~ validate ~ error:', error);
       throw new CustomInternalServerErrorException();

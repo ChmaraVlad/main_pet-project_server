@@ -32,9 +32,7 @@ export class AccessJwtStrategy extends PassportStrategy(
         throw new CustomNotFoundException();
       }
 
-      return {
-        user: payload.user,
-      };
+      return payload.user;
     } catch (error) {
       console.log('🚀 ~ validate ~ error:', error);
       throw new CustomInternalServerErrorException();
