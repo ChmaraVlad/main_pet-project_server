@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from 'src/users/users.service';
-import { UserDto } from './dto/userDto';
 import { ConfigService } from '@nestjs/config';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user: UserDto = await this.usersService.findOne(email);
+    const user: User = await this.usersService.findOne(email);
     if (user && user.password === pass) {
       const { password, ...result } = user;
       return result;
@@ -22,8 +22,8 @@ export class AuthService {
     return null;
   }
 
-  async getUserData(user: UserDto) {
-    const userData: UserDto = await this.usersService.findOne(user.email);
+  async getUserData(user: User) {
+    const userData: User = await this.usersService.findOne(user.email);
 
     if (!userData) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
@@ -32,8 +32,8 @@ export class AuthService {
     return userData;
   }
 
-  async generateJwtAccessToken(user: UserDto) {
-    const payload = { user, sub: user.userId };
+  async generateJwtAccessToken(user: User) {
+    const payload = { user, sub: user.id };
     const token = await this.jwtService.sign(payload, {
       secret: this.configService.get<string>('SECRET_TOKEN_ACCESS'),
       expiresIn: 180,
@@ -45,8 +45,8 @@ export class AuthService {
     return token;
   }
 
-  async generateRefreshToken(user: UserDto) {
-    const payload = { user, sub: user.userId };
+  async generateRefreshToken(user: User) {
+    const payload = { user, sub: user.id };
 
     const token = await this.jwtService.sign(payload, {
       secret: this.configService.get<string>('SECRET_TOKEN_REFRESH'),
