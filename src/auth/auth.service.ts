@@ -35,22 +35,34 @@ export class AuthService {
   async generateJwtAccessToken(user: UserDto) {
     const payload = { user, sub: user.userId };
     const token = await this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('SECRET_TOKEN'),
+      secret: this.configService.get<string>('SECRET_TOKEN_ACCESS'),
+      expiresIn: 180,
+      // getting error on using number from env
+      // expiresIn: this.configService.get<string>(
+      //   'TOKEN_VALIDITY_DURATION_ACCESS',
+      // ),
     });
     return token;
   }
 
   async generateRefreshToken(user: UserDto) {
     const payload = { user, sub: user.userId };
+
     const token = await this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('SECRET_TOKEN'),
+      secret: this.configService.get<string>('SECRET_TOKEN_REFRESH'),
+      expiresIn: '24h',
+      // getting error on using value from env
+      // expiresIn: this.configService.get<string>(
+      //   'TOKEN_VALIDITY_DURATION_REFRESH',
+      // ),
     });
+
     return token;
   }
 
   async getInfoFromIncomingRefreshToken(token) {
     const decodedInfo = await this.jwtService.verify(token, {
-      secret: this.configService.get<string>('SECRET_TOKEN'),
+      secret: this.configService.get<string>('SECRET_TOKEN_REFRESH'),
     });
     return decodedInfo;
   }

@@ -13,18 +13,18 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.registerAsync({
-      imports: [],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('SECRET_TOKEN'),
-        signOptions: {
-          expiresIn: configService.get<string>(
-            'TOKEN_VALIDITY_DURATION_IN_SEC',
-          ),
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    JwtModule.register({}),
+    // getting troubles with such configuration
+    // JwtModule.registerAsync({
+    //   imports: [],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     secret: configService.get<string>('SECRET_TOKEN'),
+    //     signOptions: {
+    //       expiresIn: 60,
+    //     },
+    //   }),
+    //   inject: [ConfigService],
+    // }),
   ],
   providers: [
     AuthService,

@@ -19,7 +19,7 @@ export class AccessJwtStrategy extends PassportStrategy(
         (request: Request) => request?.cookies?.['access_token'],
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('SECRET_TOKEN'),
+      secretOrKey: configService.get<string>('SECRET_TOKEN_ACCESS'),
     });
   }
 

@@ -28,6 +28,7 @@ export class UserController {
     try {
       if (req.user) {
         res.send({ user: req.user });
+        return;
       }
       throw new CustomInternalServerErrorException();
     } catch (error) {
@@ -50,7 +51,7 @@ export class UserController {
         );
       }
 
-      res.send({ user: req.user });
+      return res.send({ user: req.user });
     } catch (error) {
       console.log('🚀 ~ UserController ~ admin ~ error:', error);
       throw new CustomInternalServerErrorException();
