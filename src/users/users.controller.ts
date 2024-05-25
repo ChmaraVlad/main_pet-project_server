@@ -1,5 +1,13 @@
-import { Controller, Get, Request, Res, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 // guards
 import { AccessJwtAuthGuard } from 'src/auth/guards/access-token-jwt-auth.guard';
@@ -11,6 +19,8 @@ import { UsersService } from './users.service';
 // exceptions
 import { CustomInternalServerErrorException } from 'src/exceptions/CustomInternalServerErrorException';
 import { CustomUnauthorizedException } from 'src/exceptions/CustomUnauthorizedException';
+import { CreateUserDto } from './dto/CreateUserDto';
+import { CustomBadRequestException } from 'src/exceptions/CustomBadRequestException';
 
 @ApiTags('users')
 @Controller('users')
@@ -26,11 +36,12 @@ export class UserController {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
     try {
-      if (req.user) {
-        res.send({ user: req.user });
+      const user = await this.usersServices.findOne(req.user.email);
+      if (user) {
+        res.send({ user });
         return;
       }
-      throw new CustomInternalServerErrorException();
+      throw new CustomBadRequestException('User is not defined');
     } catch (error) {
       console.log('🚀 ~ UserController ~ user ~ error:', error);
       throw new CustomInternalServerErrorException();
@@ -45,15 +56,30 @@ export class UserController {
       // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
       const isAdmin = await this.usersServices.isAdmin(req.user);
 
-      if (!isAdmin) {
-        throw new CustomUnauthorizedException(
-          "You don't have Admin permissions",
-        );
+      if (isAdmin) {
+        return res.send({ user: req.user });
       }
 
-      return res.send({ user: req.user });
+      throw new CustomUnauthorizedException("You don't have Admin permissions");
     } catch (error) {
       console.log('🚀 ~ UserController ~ admin ~ error:', error);
+      throw new CustomInternalServerErrorException();
+    }
+  }
+
+  @Post('/create')
+  @ApiBody({ type: [CreateUserDto] })
+  async createUser(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) res,
+  ) {
+    // Passport automatically creates a user object, based on the value we return from the validate() method,
+    // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
+    try {
+      const user = await this.usersServices.createNewUser(createUserDto);
+      res.send({ user });
+    } catch (error) {
+      console.log('🚀 ~ UserController ~ user ~ error:', error);
       throw new CustomInternalServerErrorException();
     }
   }
