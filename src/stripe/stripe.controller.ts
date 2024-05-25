@@ -40,6 +40,7 @@ export class StripeController {
       await this.stripeService.createPaymentSession(paymentRequestBody);
       if (paymentIntent) {
         response.sendStatus(201);
+        return;
       }
     } catch (error) {
       console.log('🚀 ~ StripeController ~ error:', error);
@@ -57,6 +58,7 @@ export class StripeController {
         await this.stripeService.createPaymentSession(paymentRequestBody);
 
       response.send({ url: sessionUrl });
+      return;
     } catch (error) {
       console.log('🚀 ~ StripeController ~ error:', error);
       throw new CustomInternalServerErrorException();

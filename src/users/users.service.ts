@@ -1,44 +1,81 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { UserDto } from 'src/auth/dto/userDto';
-
-// This should be a real class/interface representing a user entity
-export type User = any;
+import { Injectable } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { DatabaseService } from 'src/database/database.service';
+import { CustomBadRequestException } from 'src/exceptions/CustomBadRequestException';
+import { CustomUnauthorizedException } from 'src/exceptions/CustomUnauthorizedException';
 
 @Injectable()
 export class UsersService {
-  constructor(private configService: ConfigService) {}
-  private readonly users = [
-    {
-      userId: 1,
-      email: 'john@email.com',
-      username: 'john',
-      password: 'password',
-      roles: ['USER'],
-    },
-    {
-      userId: 2,
-      email: 'admin@email.com',
-      username: 'admin',
-      password: 'password',
-      roles: ['ADMIN', 'USER'],
-    },
-  ];
+  constructor(private database: DatabaseService) {}
 
-  async findOne(email: string): Promise<User | undefined> {
-    const user = this.users.find((user) => user.email === email);
+  async findOne(email: User['email']): Promise<User> {
+    const user = await this.database.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (user) {
+      return user;
+    }
+    throw new CustomBadRequestException('User is not defined');
+  }
+
+  addRoleToUserData(role = 'user', userData) {
+    let copiedData;
+    if (Array.isArray(userData.roles)) {
+      copiedData = {
+        roles: [...userData.roles],
+        ...userData,
+      };
+      return copiedData;
+    }
+    copiedData = {
+      roles: [role],
+      ...userData,
+    };
+
+    return copiedData;
+  }
+
+  async createNewUser(userData): Promise<User> {
+    if (!userData) {
+      throw new CustomBadRequestException();
+    }
+    if (!userData.roles) {
+      const data = this.addRoleToUserData('user', userData);
+
+      const user = await this.database.user.create({
+        data: {
+          ...data,
+        },
+      });
+
+      if (!user) {
+        throw new CustomBadRequestException('User was not created ');
+      }
+      return user;
+    }
+
+    const user = await this.database.user.create({
+      data: {
+        ...userData,
+      },
+    });
 
     if (!user) {
-      throw new Error('User is not defined');
+      throw new CustomBadRequestException('User is not defined');
     }
     return user;
   }
 
-  async isAdmin(user: UserDto): Promise<User | undefined> {
+  async isAdmin(user: User): Promise<User | undefined> {
     const userData = await this.findOne(user.email);
-    const adminRole = this.configService.get<string>('ADMIN');
-    const isAdmin = userData.roles.includes(adminRole);
+    const isAdmin = userData.roles.includes('admin');
 
-    return isAdmin;
+    if (isAdmin) {
+      return userData;
+    }
+
+    throw new CustomUnauthorizedException('You are not admin');
   }
 }

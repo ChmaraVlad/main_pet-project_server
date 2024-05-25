@@ -25,7 +25,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
   async validate(req: any, email: string, password: string): Promise<any> {
     // Typically, the only significant difference in the validate() method for each strategy is how you determine if a user exists and is valid.
-    // For example, in a JWT strategy, depending on requirements, we may evaluate whether the userId carried in the decoded token matches
+    // For example, in a JWT strategy, depending on requirements, we may evaluate whether the id carried in the decoded token matches
     // a record in our user database, or matches a list of revoked tokens.
     try {
       const user = await this.authService.validateUser(email, password);

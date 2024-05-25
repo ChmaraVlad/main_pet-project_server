@@ -38,7 +38,7 @@ export class AuthController {
       res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: true,
-        maxAge: 5 * 60 * 1000, //5min
+        maxAge: 60 * 1000, //1min
       });
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
@@ -49,6 +49,7 @@ export class AuthController {
       const { password, ...dataWithoutPassword } = user;
 
       res.send({ user: dataWithoutPassword });
+      return;
     } catch (error) {
       console.log('🚀 ~ AuthController ~ login ~ error:', error);
       throw new CustomInternalServerErrorException();
@@ -57,10 +58,7 @@ export class AuthController {
 
   @UseGuards(RefreshJwtAuthGuard)
   @Get('/refresh')
-  async regenerateTokens(
-    @Request() req,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async regenerateTokens(@Request() req, @Res({ passthrough: true }) res) {
     try {
       const incomingRefreshToken = req.cookies['refresh_token'];
       if (!incomingRefreshToken) {
@@ -83,16 +81,17 @@ export class AuthController {
 
         res.cookie('access_token', accessToken, {
           httpOnly: true,
-          maxAge: 10 * 1000,
+          maxAge: 60 * 1000, //1m
         });
         res.cookie('refresh_token', refreshToken, {
           httpOnly: true,
           secure: true,
-          maxAge: 24 * 60 * 60 * 1000,
+          maxAge: 24 * 60 * 60 * 1000, //24hr
         });
         // Passport automatically creates a user object, based on the value we return from the validate() method,
         // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
         res.send({ user: decodedToken.user });
+        return;
       }
     } catch (error) {
       console.log('🚀 ~ AuthController ~ error:', error);
