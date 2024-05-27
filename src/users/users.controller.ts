@@ -32,16 +32,16 @@ export class UserController {
 
   @UseGuards(AccessJwtAuthGuard)
   @Get('/info')
-  async user(@Request() req, @Res({ passthrough: true }) res) {
+  async user(@Request() req) {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
     try {
       const user = await this.usersServices.findOne(req.user.email);
       if (user) {
-        res.send({ user });
-        return;
+        return { user };
+      } else {
+        throw new CustomBadRequestException('User is not defined');
       }
-      throw new CustomBadRequestException('User is not defined');
     } catch (error) {
       console.log('🚀 ~ UserController ~ user ~ error:', error);
       throw new CustomInternalServerErrorException();
@@ -50,14 +50,14 @@ export class UserController {
 
   @UseGuards(AccessJwtAuthGuard)
   @Get('/admin')
-  async admin(@Request() req, @Res({ passthrough: true }) res) {
+  async admin(@Request() req) {
     try {
       // Passport automatically creates a user object, based on the value we return from the validate() method,
       // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
       const isAdmin = await this.usersServices.isAdmin(req.user);
 
       if (isAdmin) {
-        return res.send({ user: req.user });
+        return { user: req.user };
       }
 
       throw new CustomUnauthorizedException("You don't have Admin permissions");
@@ -69,15 +69,12 @@ export class UserController {
 
   @Post('/create')
   @ApiBody({ type: [CreateUserDto] })
-  async createUser(
-    @Body() createUserDto: CreateUserDto,
-    @Res({ passthrough: true }) res,
-  ) {
+  async createUser(@Body() createUserDto: CreateUserDto) {
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
     try {
       const user = await this.usersServices.createNewUser(createUserDto);
-      res.send({ user });
+      return { user };
     } catch (error) {
       console.log('🚀 ~ UserController ~ user ~ error:', error);
       throw new CustomInternalServerErrorException();

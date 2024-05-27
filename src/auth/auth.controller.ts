@@ -48,8 +48,7 @@ export class AuthController {
       const user = await this.authService.getUserData(req.user);
       const { password, ...dataWithoutPassword } = user;
 
-      res.send({ user: dataWithoutPassword });
-      return;
+      return { user: dataWithoutPassword };
     } catch (error) {
       console.log('🚀 ~ AuthController ~ login ~ error:', error);
       throw new CustomInternalServerErrorException();
@@ -90,8 +89,7 @@ export class AuthController {
         });
         // Passport automatically creates a user object, based on the value we return from the validate() method,
         // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
-        res.send({ user: decodedToken.user });
-        return;
+        return { user: decodedToken.user };
       }
     } catch (error) {
       console.log('🚀 ~ AuthController ~ error:', error);
