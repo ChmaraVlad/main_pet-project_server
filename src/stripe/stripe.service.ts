@@ -8,10 +8,53 @@ import { PaymentRequestBody } from './types/PaymentRequestBody';
 export class StripeService {
   private stripe: Stripe;
 
-  constructor(@Inject('STRIPE_API_KEY') private readonly apiKey: string) {
-    this.stripe = new Stripe(this.apiKey, {
-      apiVersion: '2024-04-10',
-    });
+  constructor() {
+    this.stripe = new Stripe(
+      'sk_test_51PHjTgG6Qj3AU3cDdka50ZIz3R6Qgfbx3q468p4mVDEeUE6dFelS6Tn7eJB58L01jSFJyp1nUJNZmLTNc0RPVyz700QgnPY2af',
+      {
+        apiVersion: '2024-04-10',
+      },
+    );
+  }
+
+  constructEvent(
+    payload: any,
+    sig: string | string[],
+    secret: string,
+  ): Stripe.Event {
+    return this.stripe.webhooks.constructEvent(payload, sig, secret);
+  }
+
+  async handleEvent(event: Stripe.Event) {
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        console.log(paymentIntent, '----- paymentIntent');
+        break;
+      case 'identity.verification_session.created':
+        const verificationCreated = event.data.object;
+        console.log(verificationCreated, '----- verificationCreated');
+        break;
+      case 'checkout.session.completed':
+        const sessionCompleted = event.data.object;
+        console.log(sessionCompleted, '----- sessionCompleted');
+        break;
+      case 'account.external_account.created':
+        const externalAccounCreated = event.data.object;
+        console.log(externalAccounCreated, '----- externalAccounCreated');
+        break;
+      // Subscription webhook events
+      case 'customer.created':
+        const customerCreated = event.data.object;
+        console.log(customerCreated, '----- customerCreated');
+        break;
+      case 'customer.subscription.created':
+        const subscriptionCreated = event.data.object;
+        console.log(subscriptionCreated, '--- subscriptionCreated');
+        break;
+      default:
+        console.log(`------ Unhandled event type ${event.type}`);
+    }
   }
 
   async getProducts(): Promise<Stripe.Product[]> {

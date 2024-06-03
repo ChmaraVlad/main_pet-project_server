@@ -1,4 +1,12 @@
-import { Controller, Request, Post, UseGuards, Get, Res } from '@nestjs/common';
+import {
+  Controller,
+  Request,
+  Post,
+  UseGuards,
+  Get,
+  Res,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -10,6 +18,7 @@ import { RefreshJwtAuthGuard } from './guards/refresh-token-jwt-auth.guard';
 // exceptions custom
 import { CustomInternalServerErrorException } from 'src/exceptions/CustomInternalServerErrorException';
 import { CustomUnauthorizedException } from 'src/exceptions/CustomUnauthorizedException';
+import { AccessJwtAuthGuard } from './guards/access-token-jwt-auth.guard';
 
 @ApiTags('Авторизация')
 @Controller('/v1/auth')
@@ -48,8 +57,7 @@ export class AuthController {
       const user = await this.authService.getUserData(req.user);
       const { password, ...dataWithoutPassword } = user;
 
-      res.send({ user: dataWithoutPassword });
-      return;
+      return { user: dataWithoutPassword };
     } catch (error) {
       console.log('🚀 ~ AuthController ~ login ~ error:', error);
       throw new CustomInternalServerErrorException();
@@ -86,13 +94,33 @@ export class AuthController {
         res.cookie('refresh_token', refreshToken, {
           httpOnly: true,
           secure: true,
-          maxAge: 24 * 60 * 60 * 1000, //24hr
+          maxAge: 1000, //24hr
         });
         // Passport automatically creates a user object, based on the value we return from the validate() method,
         // and assigns it to the Request object as req.user. Later, we'll replace this with code to create and return a JWT instead
-        res.send({ user: decodedToken.user });
-        return;
+        return { user: decodedToken.user };
       }
+    } catch (error) {
+      console.log('🚀 ~ AuthController ~ error:', error);
+      throw new CustomInternalServerErrorException();
+    }
+  }
+
+  @UseGuards(AccessJwtAuthGuard)
+  @Post('/logout')
+  async logout(@Res({ passthrough: true }) res) {
+    try {
+      res.cookie('access_token', ' ', {
+        httpOnly: true,
+        maxAge: 1000,
+      });
+      res.cookie('refresh_token', ' ', {
+        httpOnly: true,
+        secure: true,
+        maxAge: 1000,
+      });
+
+      return HttpStatus.OK;
     } catch (error) {
       console.log('🚀 ~ AuthController ~ error:', error);
       throw new CustomInternalServerErrorException();

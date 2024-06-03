@@ -1,5 +1,11 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
-import { Response } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  RawBodyRequest,
+  Req,
+} from '@nestjs/common';
 
 // services
 import { StripeService } from './stripe.service';
@@ -26,10 +32,7 @@ export class StripeController {
 
   // is not ready yet
   @Post('payment')
-  async createPayment(
-    @Res() response: Response,
-    @Body() paymentRequestBody: PaymentRequestBody,
-  ) {
+  async createPayment(@Body() paymentRequestBody: PaymentRequestBody) {
     try {
       const paymentMethod = await this.stripeService.createPaymentMethod();
 
@@ -39,7 +42,6 @@ export class StripeController {
       );
       await this.stripeService.createPaymentSession(paymentRequestBody);
       if (paymentIntent) {
-        response.sendStatus(201);
         return;
       }
     } catch (error) {
@@ -49,19 +51,37 @@ export class StripeController {
   }
 
   @Post('checkout-session')
-  async createCheckoutSession(
-    @Res() response,
-    @Body() paymentRequestBody: PaymentRequestBody,
-  ) {
+  async createCheckoutSession(@Body() paymentRequestBody: PaymentRequestBody) {
     try {
       const sessionUrl =
         await this.stripeService.createPaymentSession(paymentRequestBody);
 
-      response.send({ url: sessionUrl });
-      return;
+      return { url: sessionUrl };
     } catch (error) {
       console.log('🚀 ~ StripeController ~ error:', error);
       throw new CustomInternalServerErrorException();
+    }
+  }
+
+  @Post('webhook')
+  async handleWebhook(@Req() req: RawBodyRequest<Request>): Promise<void> {
+    const sig = req.headers['stripe-signature'];
+
+    const rawBody = req.rawBody;
+
+    try {
+      const event = this.stripeService.constructEvent(
+        rawBody,
+        sig,
+        'whsec_3f2a419537ae5525272faa06b8805e682a17b2fc9ce5a1a2b2981ac0f3664756',
+        // process.env.STRIPE_WEBHOOK_SECRET,
+      );
+      await this.stripeService.handleEvent(event);
+    } catch (err) {
+      console.log(err, 'handleWebhook');
+      throw new CustomInternalServerErrorException(
+        'Error rased with webhook stripe',
+      );
     }
   }
 }
